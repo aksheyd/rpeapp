@@ -1,13 +1,22 @@
 import React, { useEffect } from 'react';
-import {SafeAreaView, StyleSheet, Button, Text, TextInput} from 'react-native';
+import {SafeAreaView, StyleSheet, Keyboard, Button, Text, TextInput} from 'react-native';
 
 const TextInputExample = () => {
-  const [haveWeight, onHaveWeight] = React.useState(0);
-  const [haveReps, onHaveReps] = React.useState(0);
-  const [haveRPE, onHaveRPE] = React.useState(0);
-  const [wantReps, onGetReps] = React.useState(0);
-  const [wantRPE, onGetRPE] = React.useState(0);
-  [erm, calcERM] = React.useState('');
+  const [haveWeight, onHaveWeight] = React.useState('');
+  const [haveReps, onHaveReps] = React.useState('');
+  const [haveRPE, onHaveRPE] = React.useState('');
+  const [wantReps, onGetReps] = React.useState('');
+  const [wantRPE, onGetRPE] = React.useState('');
+  [erm, calcERM] = React.useState(0);
+  [weight, calcWeight] = React.useState(0);
+
+  useEffect(() => {
+    calcERM(calc(haveWeight, haveReps, haveRPE));
+  }, [haveWeight, haveReps, haveRPE]);
+
+  useEffect(() => {
+    calcWeight(calc2(wantReps, wantRPE, erm));
+  }, [wantReps, wantRPE]);
 
   return (
     <SafeAreaView>
@@ -38,12 +47,6 @@ const TextInputExample = () => {
         keyboardType="numeric"
       />
 
-      <Button
-        onPress={() => {
-          calcERM(calc(haveWeight, haveReps, haveRPE))
-        }}
-        title="Calculate"
-      />
       <Text style={{fontSize: 20}}>  ER1M: {erm}</Text>
       <Text style={{fontSize: 20}}>  </Text>
 
@@ -52,7 +55,7 @@ const TextInputExample = () => {
         style={styles.input}
         onChangeText={onGetReps}
         value={wantReps}
-        placeholder="Weight"
+        placeholder="Reps"
         keyboardType="numeric"
       />
 
@@ -60,9 +63,12 @@ const TextInputExample = () => {
         style={styles.input}
         onChangeText={onGetRPE}
         value={wantRPE}
-        placeholder="Reps"
+        placeholder="RPE"
         keyboardType="numeric"
       />
+
+      <Text style={{fontSize: 20}}>  Weight: {weight}</Text>
+      <Text style={{fontSize: 20}}>  </Text>
 
       <Text style={{fontSize: 30}}></Text>
     </SafeAreaView>
@@ -136,7 +142,10 @@ function calc(have_weight, have_reps, have_rpe) {
   // // Clear the HTML at the start.
   // calc_e1rm.innerHTML = "";
   // calc_weight.innerHTML = "";
-
+  
+  have_weight = Number(have_weight);
+  have_reps = Number(have_reps);
+  have_rpe = Number(have_rpe);
   // Ensure that the E1RM widgets are sane.
   if (isNaN(have_weight) || have_weight <= 0) return;
   if (isNaN(have_reps) || have_reps <= 0) return;
@@ -149,7 +158,7 @@ function calc(have_weight, have_reps, have_rpe) {
   var e1rm = have_weight / p * 100;
   if (e1rm <= 0) return;
 
-  return 10;
+  Keyboard.dismiss();
   // Write the E1RM.
   return e1rm.toFixed(1);
 
@@ -165,6 +174,26 @@ function calc(have_weight, have_reps, have_rpe) {
 
   // // Write the Weight
   // calc_weight.innerHTML = weight.toFixed(1);
+}
+
+function calc2(want_reps, want_rpe, e1rm) {
+
+  want_reps = Number(want_reps);
+  want_rpe = Number(want_rpe);
+
+  // Ensure that the Weight widgets are sane.
+  if (isNaN(e1rm) || e1rm <= 0) return;
+  if (isNaN(want_reps) || want_reps <= 0) return;
+  if (Math.floor(want_reps) !== want_reps) return;
+  if (isNaN(want_rpe) || want_rpe <= 0) return;
+
+  // Calculate the Weight percentage.
+  var p2 = percentage(want_reps, want_rpe);
+  if (p2 <= 0) return;
+  var weight = e1rm / 100 * p2;
+  Keyboard.dismiss();
+
+  return weight.toFixed(1);
 }
 
 export default TextInputExample;
