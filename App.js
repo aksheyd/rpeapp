@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react';
 import {SafeAreaView, StyleSheet, Keyboard, Button, Text, TextInput} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
 
 const TextInputExample = () => {
   const [haveWeight, onHaveWeight] = React.useState('');
@@ -9,6 +12,30 @@ const TextInputExample = () => {
   const [wantRPE, onGetRPE] = React.useState('');
   [erm, calcERM] = React.useState(0);
   [weight, calcWeight] = React.useState(0);
+  [mems, setMems] = React.useState("");
+
+  _storeData = async () => {
+    try {
+        await AsyncStorage.setItem('mems', String(erm));
+        console.log("mems: " + mems);
+    } catch (error) {
+        console.log("stor error: " + error)
+    }
+  }
+
+  _retrieveData = async () => {
+    try {
+        const value = await AsyncStorage.getItem('mems');
+        if (value !== null) {
+            // Our data is fetched successfully
+            console.log("retr:" + value);
+            setMems(value);
+            return value;
+        }
+    } catch (error) {
+      console.log("retr error: " + error)
+    }
+  }
 
   useEffect(() => {
     calcERM(calc(haveWeight, haveReps, haveRPE));
@@ -17,6 +44,17 @@ const TextInputExample = () => {
   useEffect(() => {
     calcWeight(calc2(wantReps, wantRPE, erm));
   }, [wantReps, wantRPE]);
+
+  
+  useEffect(() => {
+    _retrieveData();
+    _storeData();
+  }, []);
+
+  useEffect(() => {
+    _retrieveData();
+    _storeData();
+  }, [mems, erm]);
 
   return (
     <SafeAreaView>
@@ -71,6 +109,7 @@ const TextInputExample = () => {
       <Text style={{fontSize: 20}}>  </Text>
 
       <Text style={{fontSize: 30}}></Text>
+      <Text style={{fontSize: 30}}> Mems: {mems}</Text>
     </SafeAreaView>
   );
 };
@@ -160,6 +199,7 @@ function calc(have_weight, have_reps, have_rpe) {
 
   Keyboard.dismiss();
   // Write the E1RM.
+  // setMems(e1rm.toFixed(1)); FIXME
   return e1rm.toFixed(1);
 
   // // Ensure that the Weight widgets are sane.
